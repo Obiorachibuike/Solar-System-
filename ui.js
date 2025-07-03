@@ -41,3 +41,11 @@ document.getElementById('toggle-animation').addEventListener('click', () => {
 document.getElementById("theme-toggle").addEventListener("click", () => {
   document.body.classList.toggle("light");
 });
+
+document.getElementById('zoom-in').addEventListener('click', () => {
+  window.cameraZoom('in');
+});
+
+document.getElementById('zoom-out').addEventListener('click', () => {
+  window.cameraZoom('out');
+});
