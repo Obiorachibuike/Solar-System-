@@ -1,6 +1,7 @@
-import * as THREE from 'https://cdn.skypack.dev/three';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.178.0/+esm';
 import { planets } from './planets.js';
 import './ui.js';
+import gsap from 'https://cdn.jsdelivr.net/npm/gsap@3.12.2/+esm';
 
 let scene, camera, renderer, sun, planetMeshes = {}, animationRunning = true;
 const clock = new THREE.Clock();
@@ -14,7 +15,7 @@ animate();
 
 function init() {
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
   camera.position.z = 30;
 
   renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('solarCanvas') });
@@ -23,11 +24,24 @@ function init() {
   const light = new THREE.PointLight(0xffffff, 2);
   scene.add(light);
 
+  // Sun
   const sunGeometry = new THREE.SphereGeometry(2, 32, 32);
-  const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFF00 });
+  const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
   sun = new THREE.Mesh(sunGeometry, sunMaterial);
   scene.add(sun);
 
+  // Pulse animation for sun
+  gsap.to(sun.scale, {
+    x: 1.05,
+    y: 1.05,
+    z: 1.05,
+    duration: 2,
+    yoyo: true,
+    repeat: -1,
+    ease: 'sine.inOut'
+  });
+
+  // Create planets
   planets.forEach(planet => {
     const geometry = new THREE.SphereGeometry(planet.size, 32, 32);
     const material = new THREE.MeshStandardMaterial({ color: planet.color });
@@ -35,10 +49,22 @@ function init() {
     mesh.userData = { ...planet, angle: 0 };
     scene.add(mesh);
     planetMeshes[planet.name] = mesh;
+
+    // Self-rotation using GSAP
+    gsap.to(mesh.rotation, {
+      y: Math.PI * 2,
+      duration: 5,
+      repeat: -1,
+      ease: "linear"
+    });
   });
 
   window.planetMeshes = planetMeshes;
-  window.toggleAnimation = () => animationRunning = !animationRunning;
+
+  window.toggleAnimation = () => {
+    animationRunning = !animationRunning;
+    animationRunning ? gsap.globalTimeline.resume() : gsap.globalTimeline.pause();
+  };
 
   addStarField();
   window.addEventListener('resize', onWindowResize);
@@ -104,16 +130,25 @@ function onPlanetClick() {
     const clicked = intersects[0].object;
     const planetPos = clicked.position.clone();
     const targetPos = planetPos.clone().normalize().multiplyScalar(planetPos.length() - 5);
-    const start = camera.position.clone();
-    const end = targetPos;
-    let t = 0;
-    function zoom() {
-      if (t < 1) {
-        t += 0.02;
-        camera.position.lerpVectors(start, end, t);
-        requestAnimationFrame(zoom);
-      }
-    }
-    zoom();
+    gsap.to(camera.position, {
+      x: targetPos.x,
+      y: targetPos.y,
+      z: targetPos.z,
+      duration: 1.5,
+      ease: "power2.out"
+    });
   }
 }
+
+window.cameraZoom = function (direction) {
+  const zoomSpeed = 2;
+  const newZ = camera.position.z + (direction === 'in' ? -zoomSpeed : zoomSpeed);
+  // Prevent zooming in too close or too far
+  const clampedZ = THREE.MathUtils.clamp(newZ, 5, 100);
+
+  gsap.to(camera.position, {
+    z: clampedZ,
+    duration: 0.6,
+    ease: "power2.out"
+  });
+};
