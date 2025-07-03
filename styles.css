@@ -1,0 +1,46 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+  background-color: black;
+  color: white;
+}
+canvas {
+  display: block;
+}
+#control-panel {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(0,0,0,0.7);
+  padding: 10px;
+  border-radius: 8px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+body.light {
+  background-color: white;
+  color: black;
+}
+body.light #control-panel {
+  background: rgba(255,255,255,0.9);
+  color: black;
+}
+#tooltip {
+  position: absolute;
+  color: white;
+  display: none;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 5px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+label {
+  display: block;
+  margin-bottom: 8px;
+}
+input[type="range"] {
+  width: 150px;
+  margin-left: 10px;
+}
